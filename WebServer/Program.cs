@@ -54,6 +54,10 @@ namespace WebServer
                     return;
 
                 Request request = Request.FromStream(stream);
+
+                if (request == null)
+                    continue;
+
                 _logger.Write(string.Format("{0} {1}", request.Method, request.Uri));
 
                 string requestFileName = request.Uri == "/" ? _config.Index : request.Uri.Substring(1).Replace('/', Path.DirectorySeparatorChar);

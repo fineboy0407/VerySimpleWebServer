@@ -34,6 +34,9 @@ namespace WebServer.Http
             string[] lines = input.Split("\r\n");
             string[] status = lines[0].Split(' ');
 
+            if (status.Length < 2)
+                return null;
+            
             return new Request(status[0], status[1]);
         }
 
