@@ -10,55 +10,54 @@ namespace WebServer
 {
     public class Program
     {
-        public static Logger Logger { get; set; }
-        public static Config Config { get; set; }
+        private static Logger _logger;
+        private static Config _config;
 
         private static void Main()
         {
-            Logger = new Logger();
+            _logger = new Logger();
             
             string configFilePath = Path.Combine(Environment.CurrentDirectory, "data", "config.json");
-            Logger.Write(string.Format("Reading config from {0}...", configFilePath));
+            _logger.Write(string.Format("Reading config from {0}...", configFilePath));
             
             if (File.Exists(configFilePath))
             {
                 string text = File.ReadAllText(configFilePath);
-                Config = JsonConvert.DeserializeObject<Config>(text);
+                _config = JsonConvert.DeserializeObject<Config>(text);
             }
             else
             {
-                Config = Config.Default;
-                string text = JsonConvert.SerializeObject(Config);
+                _config = Config.Default;
+                string text = JsonConvert.SerializeObject(_config);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(configFilePath));
 
                 using (StreamWriter writer = File.CreateText(configFilePath))
                     writer.Write(text);
 
-                Logger.Write(string.Format("Created new config file at {0}", configFilePath), ConsoleColor.Yellow);
+                _logger.Write(string.Format("Created new config file at {0}", configFilePath), ConsoleColor.Yellow);
             }
 
-            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), Config.Port);
+            TcpListener listener = new TcpListener(IPAddress.Parse("127.0.0.1"), _config.Port);
             listener.Start();
 
-            Logger.Write(string.Format("Server is now listening on port {0}!", Config.Port));
+            _logger.Write(string.Format("Server is now listening on port {0}!", _config.Port));
 
             while (true)
             {
                 TcpClient client = listener.AcceptTcpClient();
                 NetworkStream stream = client.GetStream();
 
-                Logger.Write(string.Format("Incoming connection from {0}", client.Client.RemoteEndPoint));
+                _logger.Write(string.Format("Incoming connection from {0}", client.Client.RemoteEndPoint));
 
                 if (!stream.CanRead || !stream.CanWrite)
                     return;
 
                 Request request = Request.FromStream(stream);
+                _logger.Write(string.Format("{0} {1}", request.Method, request.Uri));
 
-                Logger.Write(string.Format("{0} {1}", request.Method, request.Uri));
-
-                string requestFileName = request.Uri == "/" ? Config.Index : request.Uri.Substring(1).Replace('/', Path.DirectorySeparatorChar);
-                string requestFilePath = Path.Combine(Config.DocumentRoot, requestFileName);
+                string requestFileName = request.Uri == "/" ? _config.Index : request.Uri.Substring(1).Replace('/', Path.DirectorySeparatorChar);
+                string requestFilePath = Path.Combine(_config.DocumentRoot, requestFileName);
 
                 Response response = Response.FromFilePath(requestFilePath);
 
