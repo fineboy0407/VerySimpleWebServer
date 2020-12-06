@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using WebServer.Web;
 
@@ -42,6 +43,12 @@ namespace WebServer.Http
 
             if (contentType != null)
                 Headers.Add("Content-Type", contentType);
+        }
+
+        public void Send(NetworkStream stream)
+        {
+            stream.Write(Encoding.ASCII.GetBytes(ToString()));
+            stream.Flush();
         }
 
         public override string ToString()

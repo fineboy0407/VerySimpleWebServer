@@ -68,9 +68,7 @@ namespace WebServer
                 if (File.Exists(requestFilePath))
                     response.Body = File.ReadAllText(requestFilePath);
 
-                stream.Write(Encoding.ASCII.GetBytes(response.ToString()));
-                stream.Flush();
-
+                response.Send(stream);
                 client.Close();
             }
         }
